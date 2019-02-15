@@ -1,0 +1,64 @@
+﻿@model CopaFilmes.Presentation.Models.FilmeViewModel
+
+<div class="jumbotron">
+    <p>CAMPEONATO DE FILMES</p>
+    <h2>FASE DE SELEÇÃO</h2>
+    <p class="lead">Selecione 8 filmes que você deseja que entrem na competição e depois pressione o botão Gerar Meu Campeonato para prosseguir.</p>
+</div>
+
+<div class="row">
+    <div id="LoadUserControl" style="overflow-y:auto; overflow-x:hidden; "></div>
+    <div class="container">
+        <div class="count-checkboxes-wrapper">
+            <span>Selecionados</span>
+            <span id="count-checked-checkboxes">0</span> de 8
+        </div>
+        @using (Html.BeginForm("Resultado", "Home", FormMethod.Post, new { id = "formFilme" }))
+        {
+            <div class="form-group text-center">
+                <input type="button" class="btn btn-primary" value="Gerar Meu Campeonato" id="btnSubmit" disabled="disabled" />
+            </div>
+
+            foreach (var item in Model.Filmes)
+            {
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" class="checkFilme"
+                               name="FilmesSelecionados" ]
+                               value="@item.Id" /> @item.Titulo - @item.Ano
+                        </label>
+                    </div>
+                }
+            }
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.3.1.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var $checkboxes = $('#formFilme input[type="checkbox"]');
+        $checkboxes.change(function () {
+            var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+            $('#count-checked-checkboxes').text(countCheckedCheckboxes);
+            $('#btnSubmit')[0].disabled = countCheckedCheckboxes == 8 ? false : true;
+            if ($('input.checkFilme').filter(':checked').length == 8)
+                $('input.checkFilme:not(:checked)').attr('disabled', 'disabled');
+            else
+                $('input.checkFilme').removeAttr('disabled');
+        });
+    });
+
+    $('#btnSubmit').click(function () {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("Resultado", "Home")',
+            data: { ids: $("input.checkFilme:checked").map(function(){ return $(this).val();}).toArray() },
+            dataType: "json",
+            success: function (data) {
+                console.log(data);
+                var url="@Url.Action("ResultadoFinal","Home")?ids="+data.map(function(item) { return item['Id']; });
+                window.location.href=url;
+            }
+        });
+    });
+</script>
